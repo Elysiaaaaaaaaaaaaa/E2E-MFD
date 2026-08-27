@@ -1,5 +1,4 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-os.environ["MPLBACKEND"] = "agg"
 import argparse
 import copy
 import os
