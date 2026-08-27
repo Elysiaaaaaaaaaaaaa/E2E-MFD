@@ -94,23 +94,59 @@ class DroneVehicleDataset(CustomDataset):
                     continue
 
                 with open(ann_file) as f:
-                    s = f.readlines()
-                    for si in s:
-                        bbox_info = si.split()
-                        poly = np.array(bbox_info[:8], dtype=np.float32)
-                        try:
-                            x, y, w, h, a = poly2obb_np(poly, self.version)
-                        except:  # noqa: E722
-                            continue
-                        cls_name = bbox_info[8]
-                        difficulty = int(bbox_info[9])
-                        label = cls_map[cls_name]
-                        if difficulty > self.difficulty:
-                            pass
-                        else:
-                            gt_bboxes.append([x, y, w, h, a])
-                            gt_labels.append(label)
-                            gt_polygons.append(poly)
+                    lines = [l for l in f.readlines() if l.strip()]
+                if not lines:
+                    continue
+
+                # ============ 统一转为 DOTA v1 行 ============
+                # 5 列  -> YOLO 格式(cls_id cx cy w h，归一化) -> 转 DOTA
+                # >=10 列 -> 本身就是 DOTA 格式(x1 y1 ... x4 y4 cls diff)
+                n_col = len(lines[0].split())
+                if n_col == 5:
+                    # 反归一化需要图片真实尺寸
+                    img_w, img_h = self._get_img_size(img_name)
+                    dota_lines = []
+                    for si in lines:
+                        parts = si.split()
+                        cls_id = int(parts[0])
+                        if not 0 <= cls_id < len(self.CLASSES):
+                            raise ValueError(
+                                f'Invalid class id {cls_id} in {ann_file}')
+                        cls_name = self.CLASSES[cls_id]
+                        cx = float(parts[1]) * img_w
+                        cy = float(parts[2]) * img_h
+                        bw = float(parts[3]) * img_w
+                        bh = float(parts[4]) * img_h
+                        # 水平框 -> 4 角点（顺时针），难度填 0
+                        x1, y1 = cx - bw / 2, cy - bh / 2
+                        x2, y2 = cx + bw / 2, cy + bh / 2
+                        pts = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
+                        dota_lines.append(
+                            ' '.join(f'{p:.2f}' for xy in pts for p in xy) +
+                            f' {cls_name} 0')
+                elif n_col >= 10:
+                    dota_lines = lines
+                else:
+                    raise ValueError(
+                        f'Unknown annotation format in {ann_file}: '
+                        f'{n_col} columns, first line: '
+                        f'{lines[0].strip() if lines else "(empty)"}')
+
+                # ============ 统一按 DOTA v1 解析 ============
+                for si in dota_lines:
+                    bbox_info = si.split()
+                    poly = np.array(bbox_info[:8], dtype=np.float32)
+                    try:
+                        x, y, w, h, a = poly2obb_np(poly, self.version)
+                    except:  # noqa: E722
+                        continue
+                    cls_name = bbox_info[8]
+                    difficulty = int(bbox_info[9])
+                    label = cls_map[cls_name]
+                    if difficulty <= self.difficulty:
+                        gt_bboxes.append([x, y, w, h, a])
+                        gt_labels.append(label)
+                        gt_polygons.append(poly)
 
                 if gt_bboxes:
                     data_info['ann']['bboxes'] = np.array(
@@ -154,6 +190,24 @@ class DroneVehicleDataset(CustomDataset):
                 return img_id + ext
         # 兜底：找不到时回退 jpg，让后续加载器报错定位问题
         return img_id + '.jpg'
+
+    def _get_img_size(self, img_name):
+        """按文件名读取图片宽高，用于 YOLO 归一化坐标反算像素。
+
+        Returns:
+            tuple: (img_w, img_h)
+        """
+        p = osp.join(self.img_prefix, img_name)
+        try:
+            from PIL import Image
+            with Image.open(p) as im:
+                return im.size  # (w, h)
+        except Exception:  # noqa: E722
+            import cv2
+            img = cv2.imread(p)
+            if img is None:
+                raise FileNotFoundError(f'Cannot read image: {p}')
+            return img.shape[1], img.shape[0]
 
     def _filter_imgs(self):
         """Filter images without ground truths."""
