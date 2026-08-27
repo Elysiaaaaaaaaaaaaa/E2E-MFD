@@ -1,8 +1,8 @@
 # dataset settings
 dataset_type = 'DroneVehicleDataset'
 data_root = "../data/" 
-kaggle_train = "/kaggle/input/datasets/czx0000/aic-train"
-kaggle_test = "/kaggle/input/datasets/czx0000/aic-test"
+kaggle_train = "/kaggle/input/datasets/czx0000/aic-train/"
+kaggle_test = "/kaggle/input/datasets/czx0000/aic-test/"
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 # train_pipeline = [
@@ -17,7 +17,7 @@ img_norm_cfg = dict(
 # ]
 train_pipeline = [
     #dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
-    dict(type='LoadImageFromFile', spectrals=('visible','infrared')),
+    dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RResize', img_scale=(712, 840)),
     dict(type='Normalize', **img_norm_cfg),
@@ -26,7 +26,7 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 test_pipeline = [
-    dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
     dict(
         type='MultiScaleFlipAug',
         img_scale=(712, 840),

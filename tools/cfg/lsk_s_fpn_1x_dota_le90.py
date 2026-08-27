@@ -149,7 +149,7 @@ img_norm_cfg = dict(
 # ]
 train_pipeline = [
     # dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
-    dict(type='LoadImageFromFile', spectrals=('visible','infrared')),
+    dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RResize', img_scale=(712, 840)),
     dict(type='Normalize', **img_norm_cfg),

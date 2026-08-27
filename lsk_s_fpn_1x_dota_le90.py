@@ -3,7 +3,7 @@ data_root = '../data/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
-    dict(type='LoadImageFromFile', spectrals=('visible', 'infrared')),
+    dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RResize', img_scale=(712, 840)),
     dict(
@@ -16,7 +16,7 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 test_pipeline = [
-    dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
     dict(
         type='MultiScaleFlipAug',
         img_scale=(712, 840),
@@ -41,7 +41,7 @@ data = dict(
         ann_file='../data/训练集/labels',
         img_prefix='../data/训练集/visible/',
         pipeline=[
-            dict(type='LoadImageFromFile', spectrals=('visible', 'infrared')),
+            dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
             dict(type='LoadAnnotations', with_bbox=True),
             dict(type='RResize', img_scale=(712, 840)),
             dict(
@@ -59,7 +59,7 @@ data = dict(
         ann_file='../data/训练集/labels',
         img_prefix='../data/训练集/visible/',
         pipeline=[
-            dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+            dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
             dict(
                 type='MultiScaleFlipAug',
                 img_scale=(712, 840),
@@ -82,7 +82,7 @@ data = dict(
         ann_file='../data/测试集/visible',
         img_prefix='../data/测试集/visible/',
         pipeline=[
-            dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+            dict(type='LoadImagePairFromFile', spectrals=('visible', 'infrared')),
             dict(
                 type='MultiScaleFlipAug',
                 img_scale=(712, 840),

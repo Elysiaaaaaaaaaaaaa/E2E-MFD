@@ -1,8 +1,8 @@
 # dataset settings
 dataset_type = 'DroneVehicleDataset'
 data_root = "../data/"
-kaggle_train = "/kaggle/input/datasets/czx0000/aic-train" 
-kaggle_test = "/kaggle/input/datasets/czx0000/aic-test"
+kaggle_train = "/kaggle/input/datasets/czx0000/aic-train/" 
+kaggle_test = "/kaggle/input/datasets/czx0000/aic-test/"
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
