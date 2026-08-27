@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'DroneVehicleDataset'
-data_root = "" 
+data_root = "../data/" 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -32,16 +32,22 @@ data = dict(
     workers_per_gpu=8,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'train/rgb/labels/',
-        img_prefix=data_root + 'train/rgb/images/',
+        #ann_file=data_root + 'train/rgb/labels/',
+        ann_file = data_root + '训练集/labels'
+        #img_prefix=data_root + 'train/rgb/images/',
+        img_prefix = data_root + '训练集/visible/',
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'test/rgb/labels/',
-        img_prefix=data_root + 'test/rgb/images/',
+        #ann_file=data_root + 'test/rgb/labels/',
+        ann_file = data_root + '训练集/labels'
+        #img_prefix=data_root + 'test/rgb/images/',
+        img_prefix = data_root + '训练集/visible/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'test/rgb/labels/',
-        img_prefix=data_root + 'test/rgb/images/',
+        #ann_file=data_root + 'test/rgb/labels/',
+        ann_file = data_root + '测试集/visible'
+        #img_prefix=data_root + 'test/rgb/images/', 
+        img_prefix=data_root + '测试集/visible/',
         pipeline=test_pipeline))

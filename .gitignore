@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+
+# OpenMMLab 安装包拷贝（勿入库，应从 PyPI/官方 wheel 安装）
+mmcv/
+mmdet/
+
+# 虚拟环境与缓存（务必不入库）
+venv*/
+.pip_cache/
+
+# 数据集 / 模型权重
+*.pth
+*.pt
+data/
+datasets/
+work_dirs/
+
+# IDE
+.idea/
+.vscode/

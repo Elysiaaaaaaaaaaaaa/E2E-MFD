@@ -29,7 +29,9 @@ class DroneVehicleDataset(CustomDataset):
         version (str, optional): Angle representations. Defaults to 'oc'.
         difficulty (bool, optional): The difficulty threshold of GT.
     """
-    CLASSES = ('car', 'truck', 'bus', 'van', 'feright_car')
+    # 12 类比赛类别定义（0-11），类别名无空格（DOTA 按空白分列）
+    CLASSES = ('person', 'boat', 'animal', 'seat', 'sign', 'bicycle', 'car',
+               'ball', 'light', 'garbage_can', 'uav', 'tricycle')
 
     PALETTE = [(165, 42, 42), (189, 183, 107), (0, 255, 0), (255, 0, 0),
                (138, 43, 226)]
@@ -60,11 +62,14 @@ class DroneVehicleDataset(CustomDataset):
         ann_files = glob.glob(ann_folder + '/*.txt')
         data_infos = []
         if not ann_files:  # test phase
-            ann_files = glob.glob(ann_folder + '/*.jpg')
+            # 支持混合扩展名（jpg/png），文件名保留真实扩展名
+            ann_files = []
+            for ext in ('.jpg', '.jpeg', '.png', '.bmp'):
+                ann_files += glob.glob(ann_folder + '/*' + ext)
             for ann_file in ann_files:
                 data_info = {}
                 img_id = osp.split(ann_file)[1][:-4]
-                img_name = img_id + '.jpg'
+                img_name = osp.split(ann_file)[1]
                 data_info['filename'] = img_name
                 data_info['ann'] = {}
                 data_info['ann']['bboxes'] = []
@@ -74,7 +79,8 @@ class DroneVehicleDataset(CustomDataset):
             for ann_file in ann_files:
                 data_info = {}
                 img_id = osp.split(ann_file)[1][:-4]
-                img_name = img_id + '.jpg'
+                # 图片扩展名可能为 jpg/png 混合，探测真实扩展名
+                img_name = self._find_img(img_id)
                 data_info['filename'] = img_name
                 data_info['ann'] = {}
                 gt_bboxes = []
@@ -139,6 +145,15 @@ class DroneVehicleDataset(CustomDataset):
 
         self.img_ids = [*map(lambda x: x['filename'][:-4], data_infos)]
         return data_infos
+
+    def _find_img(self, img_id):
+        """按 id 探测 img_prefix 下真实图片文件名（jpg/png 混合兼容）。"""
+        for ext in ('.jpg', '.jpeg', '.png', '.bmp'):
+            p = osp.join(self.img_prefix, img_id + ext)
+            if osp.exists(p):
+                return img_id + ext
+        # 兜底：找不到时回退 jpg，让后续加载器报错定位问题
+        return img_id + '.jpg'
 
     def _filter_imgs(self):
         """Filter images without ground truths."""
@@ -222,8 +237,11 @@ class DroneVehicleDataset(CustomDataset):
             oriname = splitname[0]
             pattern1 = re.compile(r'__\d+___\d+')
             x_y = re.findall(pattern1, img_id)
-            x_y_2 = re.findall(r'\d+', x_y[0])
-            x, y = int(x_y_2[0]), int(x_y_2[1])
+            if x_y:  # DOTA 切图命名: ori__x___y
+                x_y_2 = re.findall(r'\d+', x_y[0])
+                x, y = int(x_y_2[0]), int(x_y_2[1])
+            else:  # 整图命名（非切图），偏移为 0
+                x, y = 0, 0
             new_result = []
             for i, dets in enumerate(result):
                 bboxes, scores = dets[:, :-1], dets[:, [-1]]

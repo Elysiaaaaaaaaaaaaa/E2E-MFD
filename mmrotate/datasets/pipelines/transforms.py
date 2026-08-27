@@ -861,6 +861,8 @@ class DefaultFormatBundle_m:
         img = results[key]
         results.setdefault('pad_shape', img.shape)
         results.setdefault('scale_factor', 1.0)
+        results.setdefault('flip', False)
+        results.setdefault('flip_direction', None)
         num_channels = 1 if len(img.shape) < 3 else img.shape[2]
         results.setdefault(
             'img_norm_cfg',
@@ -873,3 +875,46 @@ class DefaultFormatBundle_m:
     def __repr__(self):
         return self.__class__.__name__ + \
                f'(img_to_float={self.img_to_float})'
+
+
+@ROTATED_PIPELINES.register_module(force=True)
+class Normalize:
+    """Normalize images, 兼容多模态(双光谱)输入。
+
+    与 mmdet 标准 Normalize 行为一致（3 通道用 mean/std 归一化、可 to_rgb），
+    额外支持 bri/clr 等单通道/双通道分量：
+      - 3 通道: 标准归一化
+      - 1 通道(如 visimage_bri): mean=[0], std=[1]，不 to_rgb（保持亮度 0-255 语义）
+      - 2 通道(如 visimage_clr): mean=[0,0], std=[1,1]，不 to_rgb
+
+    Args:
+        mean (sequence): Mean values of 3 channels.
+        std (sequence): Std values of 3 channels.
+        to_rgb (bool): Whether to convert the image from BGR to RGB.
+    """
+
+    def __init__(self, mean, std, to_rgb=True):
+        self.mean = np.array(mean, dtype=np.float32)
+        self.std = np.array(std, dtype=np.float32)
+        self.to_rgb = to_rgb
+
+    def __call__(self, results):
+        for key in results.get('img_fields', ['img']):
+            img = results[key]
+            n_ch = 1 if len(img.shape) < 3 else img.shape[2]
+            if n_ch == len(self.mean):
+                results[key] = mmcv.imnormalize(img, self.mean, self.std,
+                                                self.to_rgb)
+            else:
+                # 单/双通道分量：零均值单位方差保持（跳过 to_rgb）
+                results[key] = mmcv.imnormalize(
+                    img, np.zeros(n_ch, dtype=np.float32),
+                    np.ones(n_ch, dtype=np.float32), False)
+        results['img_norm_cfg'] = dict(
+            mean=self.mean, std=self.std, to_rgb=self.to_rgb)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(mean={self.mean}, std={self.std}, to_rgb={self.to_rgb})'
+        return repr_str

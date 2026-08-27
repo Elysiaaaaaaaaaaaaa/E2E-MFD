@@ -75,7 +75,7 @@ class LoadImagePairFromFile(LoadImageFromFile):
             Defaults to ``dict(backend='disk')``.
     """
     def __init__(self,
-                 spectrals=('rgb', 'ir'),
+                 spectrals=('visible', 'infrared'),
                  to_float32=False,
                  color_type='color',
                  channel_order='bgr',

@@ -56,7 +56,7 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=5,
+            num_classes=12,
             bbox_coder=dict(
                 type='DeltaXYWHAOBBoxCoder',
                 angle_range=angle_version,
@@ -148,7 +148,8 @@ img_norm_cfg = dict(
 #     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 # ]
 train_pipeline = [
-    dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    # dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    dict(type='LoadImageFromFile', spectrals=('visible','infrared')),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RResize', img_scale=(712, 840)),
     dict(type='Normalize', **img_norm_cfg),

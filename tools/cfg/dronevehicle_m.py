@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'DroneVehicleDataset'
-data_root = "" 
+data_root = "../data/" 
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 # train_pipeline = [
@@ -14,7 +14,8 @@ img_norm_cfg = dict(
 #     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 # ]
 train_pipeline = [
-    dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    #dict(type='LoadImagePairFromFile', spectrals=('rgb', 'ir')),
+    dict(type='LoadImageFromFile', spectrals=('visible','infrared')),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RResize', img_scale=(712, 840)),
     dict(type='Normalize', **img_norm_cfg),
@@ -39,18 +40,24 @@ test_pipeline = [
 data = dict(
     samples_per_gpu=1,  #batchsize
     workers_per_gpu=8,
-    train=dict(
+     train=dict(
         type=dataset_type,
-        ann_file=data_root + '',    
-        img_prefix=data_root + '',           
-        pipeline=train_pipeline),          
+        #ann_file=data_root + 'train/rgb/labels/',
+        ann_file = data_root + '训练集/labels',
+        #img_prefix=data_root + 'train/rgb/images/',
+        img_prefix = data_root + '训练集/visible/',
+        pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + '',     
-        img_prefix=data_root + '',              
+        #ann_file=data_root + 'test/rgb/labels/',
+        ann_file = data_root + '训练集/labels',
+        #img_prefix=data_root + 'test/rgb/images/',
+        img_prefix = data_root + '训练集/visible/',
         pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + '',     
-        img_prefix=data_root + '',
+        #ann_file=data_root + 'test/rgb/labels/',
+        ann_file = data_root + '测试集/visible',
+        #img_prefix=data_root + 'test/rgb/images/', 
+        img_prefix=data_root + '测试集/visible/',
         pipeline=test_pipeline))
