@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+os.environ["MPLBACKEND"] = "agg"
 import argparse
 import copy
 import os
@@ -21,7 +22,7 @@ from mmrotate.models import build_detector
 from mmrotate.utils import collect_env, get_root_logger, setup_multi_processes
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-os.environ["MPLBACKEND"] = "agg"
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
     parser.add_argument('--config', default='lsk_s_fpn_1x_dota_le90.py', help='train config file path')
