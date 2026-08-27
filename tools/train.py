@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import argparse
 import copy
+import logging
 import os
 import os.path as osp
 import time
@@ -165,7 +166,16 @@ def main():
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-    model.init_weights()
+    # 静默 mmcv 权重初始化时的 INFO 日志（如
+    # "Initialized by user-defined `init_weights` in LSKNet"），
+    # 初始化结束后恢复级别，不影响训练日志输出
+    _init_logger = mmcv.utils.get_logger('mmcv')
+    _init_level = _init_logger.level
+    _init_logger.setLevel(logging.WARNING)
+    try:
+        model.init_weights()
+    finally:
+        _init_logger.setLevel(_init_level)
 
     datasets = [build_dataset(cfg.data.train)]
     if len(cfg.workflow) == 2:

@@ -4,7 +4,7 @@ _base_ = [
 ]
 
 angle_version = 'le90'
-gpu_number = 1
+gpu_number = 2
 # fp16 = dict(loss_scale='dynamic')
 model = dict(
     type='Oriented_rcnn_m',
