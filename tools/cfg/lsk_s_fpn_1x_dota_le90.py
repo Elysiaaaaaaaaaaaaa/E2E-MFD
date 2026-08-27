@@ -5,7 +5,8 @@ _base_ = [
 
 angle_version = 'le90'
 gpu_number = 2
-# fp16 = dict(loss_scale='dynamic')
+# AMP 混合精度（mmcv 1.7.2 原生支持，显存约减半）
+fp16 = dict(loss_scale=512.)
 model = dict(
     type='Oriented_rcnn_m',
     backbone=dict(
@@ -158,8 +159,8 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 data = dict(
-    samples_per_gpu=4,
-    workers_per_gpu=8,
+    samples_per_gpu=2,   # 原 4，OOM 后降为 2
+    workers_per_gpu=4,   # 原 8，降低主机内存/IO 压力
     train=dict(pipeline=train_pipeline, version=angle_version),
     val=dict(version=angle_version),
     test=dict(version=angle_version))

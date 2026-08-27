@@ -34,8 +34,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    samples_per_gpu=4,
-    workers_per_gpu=8,
+    samples_per_gpu=2,   # 原 4，OOM 后降为 2
+    workers_per_gpu=4,   # 原 8，降低主机内存/IO 压力
     train=dict(
         type='DroneVehicleDataset',
         ann_file='../data/训练集/labels',
@@ -122,6 +122,8 @@ opencv_num_threads = 0
 mp_start_method = 'fork'
 angle_version = 'le90'
 gpu_number = 1
+# AMP 混合精度（mmcv 1.7.2 原生支持，显存约减半）
+fp16 = dict(loss_scale=512.)
 model = dict(
     type='Oriented_rcnn_m',
     backbone=dict(
